@@ -9,6 +9,8 @@ class TokenStateViewer {
         this.vaultsData = [];
         this.filteredBalances = [];
         this.filteredVaults = [];
+        this.sourceCode = null;
+        this.sourceTxId = null;
 
         // Sort state tracking
         this.balanceSortState = { column: null, direction: null };
@@ -42,6 +44,10 @@ class TokenStateViewer {
     async loadData() {
         // Load the complete state
         this.state = await this.dataSource.fetchState();
+
+        // Clear cached source code when loading new data
+        this.sourceCode = null;
+        this.sourceTxId = null;
 
         // Display contract ID
         const contractId = this.state.contractTxId;
@@ -270,7 +276,124 @@ class TokenStateViewer {
             this.renderBalances();
         } else if (tabName === 'vaults') {
             this.renderVaults();
+        } else if (tabName === 'source') {
+            this.loadAndRenderSourceCode();
         }
+    }
+
+    async loadAndRenderSourceCode() {
+        if (!this.state) {
+            document.getElementById('source-code-content').textContent = '// Please load contract data first';
+            return;
+        }
+
+        // If we already have the source code, just render it
+        if (this.sourceCode && this.sourceTxId) {
+            this.renderSourceCode();
+            return;
+        }
+
+        try {
+            document.getElementById('source-code-content').textContent = '// Loading source code...';
+
+            // Get contract ID
+            const contractId = this.state.contractTxId;
+
+            // Fetch source transaction ID from GraphQL
+            const sourceTxId = await this.fetchSourceTxId(contractId);
+            this.sourceTxId = sourceTxId;
+
+            // Fetch the actual source code
+            const sourceCode = await this.fetchSourceCode(sourceTxId);
+            this.sourceCode = sourceCode;
+
+            this.renderSourceCode();
+        } catch (error) {
+            console.error('Error loading source code:', error);
+            document.getElementById('source-code-content').textContent =
+                `// Error loading source code: ${error.message}`;
+        }
+    }
+
+    async fetchSourceTxId(contractId) {
+        const query = `
+            {
+                transactions(ids: ["${contractId}"]) {
+                    edges {
+                        node {
+                            tags {
+                                name
+                                value
+                            }
+                        }
+                    }
+                }
+            }
+        `;
+
+        const response = await fetch('https://arweave.net/graphql', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query })
+        });
+
+        if (!response.ok) {
+            throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+
+        if (result.errors) {
+            throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+        }
+
+        const edges = result.data.transactions.edges;
+        if (!edges || edges.length === 0) {
+            throw new Error('Contract transaction not found');
+        }
+
+        const tags = edges[0].node.tags;
+        const contractSrcTag = tags.find(tag => tag.name === 'Contract-Src');
+
+        if (!contractSrcTag) {
+            throw new Error('Contract-Src tag not found');
+        }
+
+        return contractSrcTag.value;
+    }
+
+    async fetchSourceCode(sourceTxId) {
+        const response = await fetch(`https://arweave.net/${sourceTxId}`, {
+            redirect: 'follow'
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch source code: ${response.status} ${response.statusText}`);
+        }
+
+        const sourceCode = await response.text();
+        return sourceCode;
+    }
+
+    renderSourceCode() {
+        // Update source TX ID display
+        document.getElementById('source-tx-id').textContent = this.sourceTxId;
+
+        const copySourceTxBtn = document.getElementById('copy-source-tx-btn');
+        copySourceTxBtn.style.display = 'inline-flex';
+        copySourceTxBtn.dataset.originalTitle = 'Copy source TX ID';
+        copySourceTxBtn.onclick = () => this.copyToClipboard(this.sourceTxId, copySourceTxBtn);
+
+        // Update code viewer
+        document.getElementById('source-code-content').textContent = this.sourceCode;
+
+        // Setup copy code button
+        const copyCodeBtn = document.getElementById('copy-code-btn');
+        copyCodeBtn.style.display = 'inline-flex';
+        copyCodeBtn.dataset.originalTitle = 'Copy code';
+        copyCodeBtn.onclick = () => this.copyToClipboard(this.sourceCode, copyCodeBtn);
     }
 
     filterBalances(searchTerm) {

@@ -583,6 +583,90 @@ footer {
     display: none;
 }
 
+.source-info {
+    margin-bottom: 24px;
+}
+
+.source-detail {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.source-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.source-value {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.code-viewer-container {
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.code-viewer-header {
+    background: var(--surface-elevated);
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.code-filename {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.code-viewer {
+    margin: 0;
+    padding: 20px;
+    overflow-x: auto;
+    background: var(--background);
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.code-viewer code {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    display: block;
+    white-space: pre;
+    tab-size: 4;
+}
+
+.code-viewer::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.code-viewer::-webkit-scrollbar-track {
+    background: var(--background);
+}
+
+.code-viewer::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 6px;
+}
+
+.code-viewer::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 16px;

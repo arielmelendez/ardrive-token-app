@@ -54,6 +54,7 @@
         <nav class="tabs">
             <button class="tab-btn active" data-tab="balances">Balances</button>
             <button class="tab-btn" data-tab="vaults">Vaults</button>
+            <button class="tab-btn" data-tab="source">Source Code</button>
         </nav>
 
         <main>
@@ -111,6 +112,34 @@
                     </div>
                 </div>
                 <div class="vaults-container" id="vaults-container">
+                </div>
+            </section>
+
+            <!-- Source Code Tab -->
+            <section id="source-tab" class="tab-content">
+                <div class="source-info">
+                    <div class="source-detail">
+                        <span class="source-label">Source Transaction:</span>
+                        <span class="source-value" id="source-tx-id">-</span>
+                        <button class="copy-btn" id="copy-source-tx-btn" title="Copy source TX ID" style="display: none;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="code-viewer-container">
+                    <div class="code-viewer-header">
+                        <span class="code-filename" id="code-filename">contract.js</span>
+                        <button class="copy-btn" id="copy-code-btn" title="Copy code" style="display: none;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre id="source-code" class="code-viewer"><code id="source-code-content">// Loading source code...</code></pre>
                 </div>
             </section>
         </main>
