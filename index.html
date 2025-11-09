@@ -12,6 +12,12 @@
             <h1>ArDrive Token State Viewer</h1>
             <div class="contract-info">
                 <span id="contractId"></span>
+                <button class="copy-btn" id="copy-contract-btn" title="Copy contract ID" style="display: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </button>
             </div>
         </header>
 
@@ -75,6 +81,7 @@
                         <thead>
                             <tr>
                                 <th class="sortable" data-column="address" data-type="string">Address</th>
+                                <th class="copy-column"></th>
                                 <th class="sortable" data-column="balance" data-type="number">Balance</th>
                             </tr>
                         </thead>

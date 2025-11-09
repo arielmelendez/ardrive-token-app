@@ -55,6 +55,43 @@ header h1 {
     font-size: 0.85rem;
     color: var(--text-secondary);
     font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.copy-btn:hover {
+    background: var(--surface-elevated);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.copy-btn:active {
+    transform: scale(0.95);
+}
+
+.copy-btn.copied {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.copy-btn svg {
+    display: block;
 }
 
 .data-source-section {
@@ -365,6 +402,13 @@ th.sortable.desc::after {
     opacity: 1;
 }
 
+th.copy-column,
+td.copy-column {
+    width: 40px;
+    padding: 16px 8px;
+    text-align: left;
+}
+
 td {
     padding: 16px 20px;
     border-top: 1px solid var(--border);
@@ -393,16 +437,33 @@ tbody tr td:last-child {
     font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
     font-size: 0.85rem;
     color: var(--text-primary);
-    max-width: 400px;
+    width: 1px;
+    white-space: nowrap;
+}
+
+.address-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+}
+
+.address-text {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+}
+
+th[data-column="balance"],
+.balance-cell {
+    text-align: right;
 }
 
 .balance-cell {
     font-weight: 700;
     color: var(--primary-color);
-    text-align: right;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
     font-size: 0.95rem;
@@ -440,11 +501,16 @@ tbody tr td:last-child {
     font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
     font-size: 0.85rem;
     color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 20px;
+}
+
+.vault-address .address-text {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    flex: 1;
-    margin-right: 20px;
 }
 
 .vault-total {

@@ -44,8 +44,14 @@ class TokenStateViewer {
         this.state = await this.dataSource.fetchState();
 
         // Display contract ID
-        document.getElementById('contractId').textContent =
-            `Contract: ${this.state.contractTxId}`;
+        const contractId = this.state.contractTxId;
+        document.getElementById('contractId').textContent = `Contract: ${contractId}`;
+
+        // Show and setup copy button for contract
+        const copyContractBtn = document.getElementById('copy-contract-btn');
+        copyContractBtn.style.display = 'inline-flex';
+        copyContractBtn.dataset.originalTitle = 'Copy contract ID';
+        copyContractBtn.onclick = () => this.copyToClipboard(contractId, copyContractBtn);
 
         // Process balances
         const balances = this.state.state.balances;
@@ -297,10 +303,26 @@ class TokenStateViewer {
         // Render rows
         this.filteredBalances.forEach(item => {
             const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="address-cell">${item.address}</td>
-                <td class="balance-cell">${this.formatNumber(item.balance)}</td>
-            `;
+
+            // Address cell (text only)
+            const addressCell = document.createElement('td');
+            addressCell.className = 'address-cell';
+            addressCell.textContent = item.address;
+
+            // Copy button cell
+            const copyCell = document.createElement('td');
+            copyCell.className = 'copy-column';
+            const copyBtn = this.createCopyButton(item.address);
+            copyCell.appendChild(copyBtn);
+
+            // Balance cell
+            const balanceCell = document.createElement('td');
+            balanceCell.className = 'balance-cell';
+            balanceCell.textContent = this.formatNumber(item.balance);
+
+            row.appendChild(addressCell);
+            row.appendChild(copyCell);
+            row.appendChild(balanceCell);
             tbody.appendChild(row);
         });
     }
@@ -337,8 +359,39 @@ class TokenStateViewer {
             const card = document.createElement('div');
             card.className = 'vault-card';
 
-            const entriesHtml = vault.entries.map(entry => `
-                <div class="vault-entry">
+            // Create header
+            const header = document.createElement('div');
+            header.className = 'vault-header';
+
+            // Address with copy button
+            const vaultAddressDiv = document.createElement('div');
+            vaultAddressDiv.className = 'vault-address';
+
+            const addressText = document.createElement('span');
+            addressText.className = 'address-text';
+            addressText.textContent = vault.address;
+
+            const copyBtn = this.createCopyButton(vault.address);
+
+            vaultAddressDiv.appendChild(addressText);
+            vaultAddressDiv.appendChild(copyBtn);
+
+            // Total
+            const totalSpan = document.createElement('span');
+            totalSpan.className = 'vault-total';
+            totalSpan.textContent = `${this.formatNumber(vault.total)} Total`;
+
+            header.appendChild(vaultAddressDiv);
+            header.appendChild(totalSpan);
+
+            // Create entries container
+            const entriesContainer = document.createElement('div');
+            entriesContainer.className = 'vault-entries';
+
+            vault.entries.forEach(entry => {
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'vault-entry';
+                entryDiv.innerHTML = `
                     <div class="vault-entry-item">
                         <span class="vault-entry-label">Balance</span>
                         <span class="vault-entry-value">${this.formatNumber(entry.balance)}</span>
@@ -351,19 +404,12 @@ class TokenStateViewer {
                         <span class="vault-entry-label">End</span>
                         <span class="vault-entry-value">${this.formatNumber(entry.end)}</span>
                     </div>
-                </div>
-            `).join('');
+                `;
+                entriesContainer.appendChild(entryDiv);
+            });
 
-            card.innerHTML = `
-                <div class="vault-header">
-                    <span class="vault-address">${vault.address}</span>
-                    <span class="vault-total">${this.formatNumber(vault.total)} Total</span>
-                </div>
-                <div class="vault-entries">
-                    ${entriesHtml}
-                </div>
-            `;
-
+            card.appendChild(header);
+            card.appendChild(entriesContainer);
             container.appendChild(card);
         });
     }
@@ -406,6 +452,47 @@ class TokenStateViewer {
 
     hideLoading() {
         document.getElementById('loading').style.display = 'none';
+    }
+
+    createCopyButton(text) {
+        const button = document.createElement('button');
+        button.className = 'copy-btn';
+        button.title = 'Copy address';
+        button.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+        `;
+        button.onclick = (e) => {
+            e.stopPropagation();
+            this.copyToClipboard(text, button);
+        };
+        return button;
+    }
+
+    async copyToClipboard(text, button) {
+        try {
+            await navigator.clipboard.writeText(text);
+
+            // Visual feedback
+            button.classList.add('copied');
+            const originalTitle = button.dataset.originalTitle || button.title;
+            button.title = 'Copied!';
+
+            // Reset after 2 seconds
+            setTimeout(() => {
+                button.classList.remove('copied');
+                button.title = originalTitle;
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            const originalTitle = button.dataset.originalTitle || button.title;
+            button.title = 'Failed to copy';
+            setTimeout(() => {
+                button.title = originalTitle;
+            }, 2000);
+        }
     }
 }
 
