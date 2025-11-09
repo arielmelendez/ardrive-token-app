@@ -50,6 +50,127 @@ header h1 {
     font-family: monospace;
 }
 
+.data-source-section {
+    background: var(--surface);
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.data-source-section h2 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.data-source-options {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.radio-option:hover:not(.disabled) {
+    background: var(--background);
+}
+
+.radio-option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.radio-option input[type="radio"] {
+    cursor: pointer;
+}
+
+.radio-option.disabled input[type="radio"] {
+    cursor: not-allowed;
+}
+
+.radio-option span {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.data-source-config {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.config-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    min-width: 300px;
+}
+
+.config-group label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.config-group input {
+    padding: 10px 15px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: monospace;
+}
+
+.config-group input:focus:not(:disabled) {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.config-group input:disabled {
+    background: var(--background);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+.load-btn {
+    padding: 10px 24px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.load-btn:hover {
+    background: #3a7bc8;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+}
+
+.load-btn:active {
+    transform: translateY(1px);
+}
+
+.load-btn:disabled {
+    background: var(--border);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
 .tabs {
     display: flex;
     gap: 10px;

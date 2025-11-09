@@ -4,9 +4,11 @@ A simple HTML5/CSS/JavaScript application for visualizing ArDrive token state da
 
 ## Features
 
+- **Multiple Data Sources**: Choose between example snapshot, live Cache API, or custom sources
 - **Balance Explorer**: View, search, filter, and sort token balances by address or amount
 - **Vault Viewer**: Explore locked tokens with detailed information about lock periods
 - **Modular Data Architecture**: Clean interface-based design for easy data source switching
+- **Column Sorting**: Click column headers to sort data with visual indicators
 - **Responsive Design**: Works on desktop and mobile devices
 
 ## Project Structure
@@ -18,6 +20,7 @@ ardrive_token_app/
 ├── app.js                  # Main application logic
 ├── data-source.js          # DataSource interface
 ├── local-file-source.js    # Local file implementation
+├── api-source.js           # API endpoint implementation
 └── ardrive_token_state.json # Token state data
 ```
 
@@ -40,8 +43,9 @@ export class DataSource {
 
 ### Implementations
 
-1. **LocalFileSource** (current): Loads data from a local JSON file
-2. **Future implementations**: API endpoints, computed state, etc.
+1. **LocalFileSource**: Loads data from a local JSON file (included example)
+2. **ApiSource**: Fetches data from HTTP endpoints (arns.app Cache API supported)
+3. **Custom sources**: Extensible architecture for future implementations
 
 ## Usage
 
@@ -62,41 +66,35 @@ php -S localhost:8000
 
 Then open `http://localhost:8000` in your browser.
 
+### Using Data Sources
+
+The application supports multiple data sources:
+
+#### Example Snapshot
+Uses the included `ardrive_token_state.json` file. Good for quick testing and offline usage.
+
+#### Cache API
+Fetches live token state from the arns.app cache API:
+- Default endpoint: `https://api.arns.app/v1/contract/{contractId}?validity=true`
+- Default contract: `-8A6RexFkpfWwuyVO98wzSFZh0d6VJuI-buTJvlwOJQ`
+- You can enter a different contract address to view other SmartWeave contracts
+
+#### Compute State (Coming Soon)
+Placeholder for computing state from transaction history.
+
+**To load data:**
+- The app automatically loads data from the Cache API on startup
+- You can change the data source and click "Load Data" to reload
+- If using Cache API, you can modify the contract address before loading
+
 ### Creating a New Data Source
 
-To add a new data source (e.g., API endpoint):
+To add a new data source implementation:
 
-1. Create a new file (e.g., `api-source.js`)
-2. Extend the `DataSource` class
-3. Implement the `fetchState()` method
-4. Update `app.js` to use your new implementation
-
-Example:
-
-```javascript
-// api-source.js
-import { DataSource } from './data-source.js';
-
-export class ApiSource extends DataSource {
-    constructor(apiEndpoint) {
-        super();
-        this.apiEndpoint = apiEndpoint;
-    }
-
-    async fetchState() {
-        const response = await fetch(this.apiEndpoint);
-        if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
-        }
-        return await response.json();
-    }
-}
-
-// In app.js, replace:
-const dataSource = new LocalFileSource('./ardrive_token_state.json');
-// With:
-const dataSource = new ApiSource('https://api.example.com/state');
-```
+1. Create a new class that extends `DataSource`
+2. Implement the `fetchState()` method
+3. Add the option to the data source selector in `index.html`
+4. Update `handleLoadData()` in `app.js` to instantiate your source
 
 ## Data Format
 

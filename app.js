@@ -1,8 +1,9 @@
 import { LocalFileSource } from './local-file-source.js';
+import { ApiSource } from './api-source.js';
 
 class TokenStateViewer {
-    constructor(dataSource) {
-        this.dataSource = dataSource;
+    constructor() {
+        this.dataSource = null;
         this.state = null;
         this.balancesData = [];
         this.vaultsData = [];
@@ -27,10 +28,10 @@ class TokenStateViewer {
                 );
             }
 
-            await this.loadData();
             this.setupEventListeners();
-            this.renderBalances();
-            this.hideLoading();
+
+            // Auto-load data with default source (Cache API)
+            await this.handleLoadData();
         } catch (error) {
             console.error('Error initializing app:', error);
             this.showError(error.message);
@@ -68,6 +69,18 @@ class TokenStateViewer {
     }
 
     setupEventListeners() {
+        // Data source selection
+        document.querySelectorAll('input[name="dataSource"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.handleDataSourceChange(e.target.value);
+            });
+        });
+
+        // Load data button
+        document.getElementById('load-data-btn').addEventListener('click', () => {
+            this.handleLoadData();
+        });
+
         // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
@@ -89,6 +102,69 @@ class TokenStateViewer {
         document.getElementById('vault-search').addEventListener('input', (e) => {
             this.filterVaults(e.target.value);
         });
+    }
+
+    handleDataSourceChange(sourceType) {
+        const contractInput = document.getElementById('contract-address');
+
+        switch (sourceType) {
+            case 'snapshot':
+                contractInput.disabled = true;
+                break;
+            case 'api':
+                contractInput.disabled = false;
+                break;
+            case 'compute':
+                // Will be implemented later
+                contractInput.disabled = true;
+                break;
+        }
+    }
+
+    async handleLoadData() {
+        const loadBtn = document.getElementById('load-data-btn');
+        const selectedSource = document.querySelector('input[name="dataSource"]:checked').value;
+
+        try {
+            // Disable button and show loading
+            loadBtn.disabled = true;
+            loadBtn.textContent = 'Loading...';
+            this.showLoading();
+            this.clearError();
+
+            // Create the appropriate data source
+            switch (selectedSource) {
+                case 'snapshot':
+                    this.dataSource = new LocalFileSource('./ardrive_token_state.json');
+                    break;
+                case 'api':
+                    const contractAddress = document.getElementById('contract-address').value.trim();
+                    if (!contractAddress) {
+                        throw new Error('Please enter a contract address');
+                    }
+                    const apiEndpoint = `https://api.arns.app/v1/contract/${contractAddress}?validity=true`;
+                    this.dataSource = new ApiSource(apiEndpoint);
+                    break;
+                case 'compute':
+                    throw new Error('Compute State source not yet implemented');
+                default:
+                    throw new Error('Please select a data source');
+            }
+
+            // Load the data
+            await this.loadData();
+            this.renderBalances();
+            this.hideLoading();
+
+            loadBtn.textContent = 'Load Data';
+        } catch (error) {
+            console.error('Error loading data:', error);
+            this.showError(error.message);
+            this.hideLoading();
+            loadBtn.textContent = 'Load Data';
+        } finally {
+            loadBtn.disabled = false;
+        }
     }
 
     handleColumnSort(th, tableType) {
@@ -318,11 +394,20 @@ class TokenStateViewer {
         errorEl.classList.remove('hidden');
     }
 
+    clearError() {
+        const errorEl = document.getElementById('error');
+        errorEl.textContent = '';
+        errorEl.classList.add('hidden');
+    }
+
+    showLoading() {
+        document.getElementById('loading').style.display = 'block';
+    }
+
     hideLoading() {
         document.getElementById('loading').style.display = 'none';
     }
 }
 
-// Initialize the app with local file data source
-const dataSource = new LocalFileSource('./ardrive_token_state.json');
-new TokenStateViewer(dataSource);
+// Initialize the app
+new TokenStateViewer();

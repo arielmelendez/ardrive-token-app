@@ -15,6 +15,36 @@
             </div>
         </header>
 
+        <section class="data-source-section">
+            <h2>Data Source</h2>
+            <div class="data-source-options">
+                <label class="radio-option">
+                    <input type="radio" name="dataSource" value="snapshot">
+                    <span>Example Snapshot</span>
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="dataSource" value="api" checked>
+                    <span>Cache API</span>
+                </label>
+                <label class="radio-option disabled">
+                    <input type="radio" name="dataSource" value="compute" disabled>
+                    <span>Compute State (Coming Soon)</span>
+                </label>
+            </div>
+            <div class="data-source-config">
+                <div class="config-group" id="api-config">
+                    <label for="contract-address">Contract Address:</label>
+                    <input
+                        type="text"
+                        id="contract-address"
+                        placeholder="Enter contract ID"
+                        value="-8A6RexFkpfWwuyVO98wzSFZh0d6VJuI-buTJvlwOJQ"
+                    >
+                </div>
+                <button id="load-data-btn" class="load-btn">Load Data</button>
+            </div>
+        </section>
+
         <nav class="tabs">
             <button class="tab-btn active" data-tab="balances">Balances</button>
             <button class="tab-btn" data-tab="vaults">Vaults</button>
