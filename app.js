@@ -9,16 +9,30 @@ class TokenStateViewer {
         this.filteredBalances = [];
         this.filteredVaults = [];
 
+        // Sort state tracking
+        this.balanceSortState = { column: null, direction: null };
+        this.vaultSortState = { column: null, direction: null };
+
         this.init();
     }
 
     async init() {
         try {
+            // Check if running via HTTP
+            if (window.location.protocol === 'file:') {
+                throw new Error(
+                    'This app must be served via HTTP. Please run a local server:\n' +
+                    'python3 -m http.server 8000\n' +
+                    'Then open http://localhost:8000'
+                );
+            }
+
             await this.loadData();
             this.setupEventListeners();
             this.renderBalances();
             this.hideLoading();
         } catch (error) {
+            console.error('Error initializing app:', error);
             this.showError(error.message);
             this.hideLoading();
         }
@@ -59,23 +73,103 @@ class TokenStateViewer {
             btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
         });
 
+        // Balance table column headers
+        document.querySelectorAll('#balances-table th.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                this.handleColumnSort(th, 'balance');
+            });
+        });
+
         // Balance controls
         document.getElementById('balance-search').addEventListener('input', (e) => {
             this.filterBalances(e.target.value);
-        });
-
-        document.getElementById('balance-sort').addEventListener('change', (e) => {
-            this.sortBalances(e.target.value);
         });
 
         // Vault controls
         document.getElementById('vault-search').addEventListener('input', (e) => {
             this.filterVaults(e.target.value);
         });
+    }
 
-        document.getElementById('vault-sort').addEventListener('change', (e) => {
-            this.sortVaults(e.target.value);
+    handleColumnSort(th, tableType) {
+        const column = th.dataset.column;
+        const dataType = th.dataset.type;
+        const sortState = tableType === 'balance' ? this.balanceSortState : this.vaultSortState;
+
+        // Determine next sort direction
+        if (sortState.column !== column) {
+            // Clicked a different column, start with ascending
+            sortState.column = column;
+            sortState.direction = 'asc';
+        } else {
+            // Cycle through: asc -> desc -> none
+            if (sortState.direction === 'asc') {
+                sortState.direction = 'desc';
+            } else if (sortState.direction === 'desc') {
+                sortState.column = null;
+                sortState.direction = null;
+            } else {
+                sortState.direction = 'asc';
+            }
+        }
+
+        // Update visual indicators
+        const tableSelector = tableType === 'balance' ? '#balances-table' : '#vaults-table';
+        this.updateSortIndicators(tableSelector);
+
+        // Sort the data
+        if (sortState.column && sortState.direction) {
+            this.sortByColumn(column, sortState.direction, dataType, tableType);
+        } else {
+            // Reset to original order
+            if (tableType === 'balance') {
+                this.filteredBalances = [...this.balancesData].filter(item =>
+                    this.filteredBalances.find(f => f.address === item.address)
+                );
+                this.renderBalances();
+            }
+        }
+    }
+
+    updateSortIndicators(tableSelector) {
+        const table = document.querySelector(tableSelector);
+        if (!table) return;
+
+        const sortState = tableSelector.includes('balance') ? this.balanceSortState : this.vaultSortState;
+
+        table.querySelectorAll('th.sortable').forEach(th => {
+            th.classList.remove('asc', 'desc');
+            if (sortState.column === th.dataset.column && sortState.direction) {
+                th.classList.add(sortState.direction);
+            }
         });
+    }
+
+    sortByColumn(column, direction, dataType, tableType) {
+        const data = tableType === 'balance' ? this.filteredBalances : this.filteredVaults;
+
+        data.sort((a, b) => {
+            let aVal = a[column];
+            let bVal = b[column];
+
+            if (dataType === 'number') {
+                aVal = Number(aVal);
+                bVal = Number(bVal);
+            } else {
+                aVal = String(aVal).toLowerCase();
+                bVal = String(bVal).toLowerCase();
+            }
+
+            if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+            if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        if (tableType === 'balance') {
+            this.renderBalances();
+        } else {
+            this.renderVaults();
+        }
     }
 
     switchTab(tabName) {
@@ -111,25 +205,6 @@ class TokenStateViewer {
         this.renderBalances();
     }
 
-    sortBalances(sortType) {
-        switch (sortType) {
-            case 'balance-desc':
-                this.filteredBalances.sort((a, b) => b.balance - a.balance);
-                break;
-            case 'balance-asc':
-                this.filteredBalances.sort((a, b) => a.balance - b.balance);
-                break;
-            case 'address-asc':
-                this.filteredBalances.sort((a, b) => a.address.localeCompare(b.address));
-                break;
-            case 'address-desc':
-                this.filteredBalances.sort((a, b) => b.address.localeCompare(a.address));
-                break;
-        }
-
-        this.renderBalances();
-    }
-
     renderBalances() {
         const tbody = document.getElementById('balances-tbody');
         tbody.innerHTML = '';
@@ -139,7 +214,7 @@ class TokenStateViewer {
         document.getElementById('total-addresses').textContent =
             this.balancesData.length.toLocaleString();
         document.getElementById('total-supply').textContent =
-            totalSupply.toLocaleString();
+            this.formatNumber(totalSupply);
         document.getElementById('filtered-count').textContent =
             this.filteredBalances.length.toLocaleString();
 
@@ -147,8 +222,8 @@ class TokenStateViewer {
         this.filteredBalances.forEach(item => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${this.truncateAddress(item.address)}</td>
-                <td>${item.balance.toLocaleString()}</td>
+                <td class="address-cell">${item.address}</td>
+                <td class="balance-cell">${this.formatNumber(item.balance)}</td>
             `;
             tbody.appendChild(row);
         });
@@ -168,25 +243,6 @@ class TokenStateViewer {
         this.renderVaults();
     }
 
-    sortVaults(sortType) {
-        switch (sortType) {
-            case 'total-desc':
-                this.filteredVaults.sort((a, b) => b.total - a.total);
-                break;
-            case 'total-asc':
-                this.filteredVaults.sort((a, b) => a.total - b.total);
-                break;
-            case 'address-asc':
-                this.filteredVaults.sort((a, b) => a.address.localeCompare(b.address));
-                break;
-            case 'address-desc':
-                this.filteredVaults.sort((a, b) => b.address.localeCompare(a.address));
-                break;
-        }
-
-        this.renderVaults();
-    }
-
     renderVaults() {
         const container = document.getElementById('vaults-container');
         container.innerHTML = '';
@@ -196,7 +252,7 @@ class TokenStateViewer {
         document.getElementById('total-vaults').textContent =
             this.vaultsData.length.toLocaleString();
         document.getElementById('total-locked').textContent =
-            totalLocked.toLocaleString();
+            this.formatNumber(totalLocked);
         document.getElementById('filtered-vaults-count').textContent =
             this.filteredVaults.length.toLocaleString();
 
@@ -209,23 +265,23 @@ class TokenStateViewer {
                 <div class="vault-entry">
                     <div class="vault-entry-item">
                         <span class="vault-entry-label">Balance</span>
-                        <span class="vault-entry-value">${entry.balance.toLocaleString()}</span>
+                        <span class="vault-entry-value">${this.formatNumber(entry.balance)}</span>
                     </div>
                     <div class="vault-entry-item">
                         <span class="vault-entry-label">Start</span>
-                        <span class="vault-entry-value">${entry.start.toLocaleString()}</span>
+                        <span class="vault-entry-value">${this.formatNumber(entry.start)}</span>
                     </div>
                     <div class="vault-entry-item">
                         <span class="vault-entry-label">End</span>
-                        <span class="vault-entry-value">${entry.end.toLocaleString()}</span>
+                        <span class="vault-entry-value">${this.formatNumber(entry.end)}</span>
                     </div>
                 </div>
             `).join('');
 
             card.innerHTML = `
                 <div class="vault-header">
-                    <span class="vault-address">${this.truncateAddress(vault.address)}</span>
-                    <span class="vault-total">${vault.total.toLocaleString()} Total</span>
+                    <span class="vault-address">${vault.address}</span>
+                    <span class="vault-total">${this.formatNumber(vault.total)} Total</span>
                 </div>
                 <div class="vault-entries">
                     ${entriesHtml}
@@ -236,6 +292,20 @@ class TokenStateViewer {
         });
     }
 
+    formatNumber(value) {
+        // Format number with up to 6 decimal places, removing trailing zeros
+        if (Number.isInteger(value)) {
+            return value.toLocaleString();
+        }
+
+        // Format with up to 6 decimals, then remove trailing zeros
+        const formatted = value.toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 6
+        });
+        return formatted;
+    }
+
     truncateAddress(address, start = 10, end = 10) {
         if (address.length <= start + end) return address;
         return `${address.slice(0, start)}...${address.slice(-end)}`;
@@ -243,6 +313,7 @@ class TokenStateViewer {
 
     showError(message) {
         const errorEl = document.getElementById('error');
+        errorEl.style.whiteSpace = 'pre-wrap';
         errorEl.textContent = message;
         errorEl.classList.remove('hidden');
     }

@@ -25,12 +25,14 @@ export class LocalFileSource extends DataSource {
         }
 
         try {
+            console.log('Fetching state from:', this.filePath);
             const response = await fetch(this.filePath);
 
             if (!response.ok) {
                 throw new Error(`Failed to load file: ${response.status} ${response.statusText}`);
             }
 
+            console.log('File loaded successfully, parsing JSON...');
             const data = await response.json();
 
             // Validate the data structure
@@ -38,10 +40,12 @@ export class LocalFileSource extends DataSource {
                 throw new Error('Invalid data structure: missing state.balances');
             }
 
+            console.log('Data validated successfully');
             // Cache the state
             this.cachedState = data;
             return data;
         } catch (error) {
+            console.error('Error in fetchState:', error);
             throw new Error(`Error loading local file: ${error.message}`);
         }
     }

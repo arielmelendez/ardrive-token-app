@@ -25,12 +25,6 @@
             <section id="balances-tab" class="tab-content active">
                 <div class="controls">
                     <input type="text" id="balance-search" placeholder="Search by address...">
-                    <select id="balance-sort">
-                        <option value="balance-desc">Balance (High to Low)</option>
-                        <option value="balance-asc">Balance (Low to High)</option>
-                        <option value="address-asc">Address (A-Z)</option>
-                        <option value="address-desc">Address (Z-A)</option>
-                    </select>
                 </div>
                 <div class="stats">
                     <div class="stat-card">
@@ -38,7 +32,7 @@
                         <span class="stat-value" id="total-addresses">-</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-label">Total Supply:</span>
+                        <span class="stat-label">Circulating Supply:</span>
                         <span class="stat-value" id="total-supply">-</span>
                     </div>
                     <div class="stat-card">
@@ -50,8 +44,8 @@
                     <table id="balances-table">
                         <thead>
                             <tr>
-                                <th>Address</th>
-                                <th>Balance</th>
+                                <th class="sortable" data-column="address" data-type="string">Address</th>
+                                <th class="sortable" data-column="balance" data-type="number">Balance</th>
                             </tr>
                         </thead>
                         <tbody id="balances-tbody">
@@ -64,12 +58,6 @@
             <section id="vaults-tab" class="tab-content">
                 <div class="controls">
                     <input type="text" id="vault-search" placeholder="Search by address...">
-                    <select id="vault-sort">
-                        <option value="total-desc">Total Locked (High to Low)</option>
-                        <option value="total-asc">Total Locked (Low to High)</option>
-                        <option value="address-asc">Address (A-Z)</option>
-                        <option value="address-desc">Address (Z-A)</option>
-                    </select>
                 </div>
                 <div class="stats">
                     <div class="stat-card">
