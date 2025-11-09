@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArDrive Token State Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ArDrive Token State Viewer</h1>
+            <div class="contract-info">
+                <span id="contractId"></span>
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="balances">Balances</button>
+            <button class="tab-btn" data-tab="vaults">Vaults</button>
+        </nav>
+
+        <main>
+            <!-- Balances Tab -->
+            <section id="balances-tab" class="tab-content active">
+                <div class="controls">
+                    <input type="text" id="balance-search" placeholder="Search by address...">
+                    <select id="balance-sort">
+                        <option value="balance-desc">Balance (High to Low)</option>
+                        <option value="balance-asc">Balance (Low to High)</option>
+                        <option value="address-asc">Address (A-Z)</option>
+                        <option value="address-desc">Address (Z-A)</option>
+                    </select>
+                </div>
+                <div class="stats">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Addresses:</span>
+                        <span class="stat-value" id="total-addresses">-</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Total Supply:</span>
+                        <span class="stat-value" id="total-supply">-</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Showing:</span>
+                        <span class="stat-value" id="filtered-count">-</span>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="balances-table">
+                        <thead>
+                            <tr>
+                                <th>Address</th>
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="balances-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Vaults Tab -->
+            <section id="vaults-tab" class="tab-content">
+                <div class="controls">
+                    <input type="text" id="vault-search" placeholder="Search by address...">
+                    <select id="vault-sort">
+                        <option value="total-desc">Total Locked (High to Low)</option>
+                        <option value="total-asc">Total Locked (Low to High)</option>
+                        <option value="address-asc">Address (A-Z)</option>
+                        <option value="address-desc">Address (Z-A)</option>
+                    </select>
+                </div>
+                <div class="stats">
+                    <div class="stat-card">
+                        <span class="stat-label">Addresses with Vaults:</span>
+                        <span class="stat-value" id="total-vaults">-</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Total Locked:</span>
+                        <span class="stat-value" id="total-locked">-</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Showing:</span>
+                        <span class="stat-value" id="filtered-vaults-count">-</span>
+                    </div>
+                </div>
+                <div class="vaults-container" id="vaults-container">
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div id="loading" class="loading">Loading...</div>
+            <div id="error" class="error hidden"></div>
+        </footer>
+    </div>
+
+    <script src="app.js" type="module"></script>
+</body>
+</html>
