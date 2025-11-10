@@ -13,6 +13,7 @@ class TokenStateViewer {
         this.sourceTxId = null;
         this.walletAddress = null;
         this.walletConnected = false;
+        this.arweave = null;
 
         // Sort state tracking
         this.balanceSortState = { column: null, direction: null };
@@ -31,6 +32,13 @@ class TokenStateViewer {
                     'Then open http://localhost:8000'
                 );
             }
+
+            // Initialize Arweave
+            this.arweave = window.Arweave.init({
+                host: 'arweave.net',
+                port: 443,
+                protocol: 'https'
+            });
 
             this.setupEventListeners();
             this.setupWallet();
@@ -269,6 +277,20 @@ class TokenStateViewer {
         // Vault controls
         document.getElementById('vault-search').addEventListener('input', (e) => {
             this.filterVaults(e.target.value);
+        });
+
+        // Interact tab controls
+        document.getElementById('transfer-preview-btn').addEventListener('click', () => {
+            this.previewTransfer();
+        });
+
+        document.getElementById('transfer-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.submitTransfer();
+        });
+
+        document.getElementById('new-transfer-btn').addEventListener('click', () => {
+            this.resetTransferForm();
         });
     }
 
@@ -772,6 +794,178 @@ class TokenStateViewer {
                 button.title = originalTitle;
             }, 2000);
         }
+    }
+
+    previewTransfer() {
+        const target = document.getElementById('transfer-target').value.trim();
+        const qty = parseInt(document.getElementById('transfer-qty').value);
+
+        if (!target || !qty || qty <= 0) {
+            this.showError('Please fill in all required fields with valid values.');
+            return;
+        }
+
+        // Hide any previous transaction ID display
+        document.getElementById('transaction-id-display').style.display = 'none';
+
+        // Update preview
+        document.getElementById('preview-target').textContent = target;
+        document.getElementById('preview-qty').textContent = this.formatNumber(qty);
+        document.getElementById('preview-contract').textContent = this.state?.contractTxId || '-';
+
+        // Show preview
+        document.getElementById('transfer-preview').style.display = 'block';
+        this.clearError();
+    }
+
+    async submitTransfer() {
+        const target = document.getElementById('transfer-target').value.trim();
+        const qty = parseInt(document.getElementById('transfer-qty').value);
+
+        // Validate wallet connection
+        if (!this.walletConnected || !this.walletAddress) {
+            this.showError('Please connect your wallet first.');
+            return;
+        }
+
+        // Validate contract state loaded
+        if (!this.state || !this.state.contractTxId) {
+            this.showError('Please load contract data first.');
+            return;
+        }
+
+        // Validate inputs
+        if (!target || !qty || qty <= 0) {
+            this.showError('Please fill in all required fields with valid values.');
+            return;
+        }
+
+        // Validate target is not sender
+        if (target === this.walletAddress) {
+            this.showError('Cannot transfer to yourself.');
+            return;
+        }
+
+        // Check balance
+        const balance = this.state.state.balances[this.walletAddress] || 0;
+        if (balance < qty) {
+            this.showError(`Insufficient balance. You have ${this.formatNumber(balance)} tokens.`);
+            return;
+        }
+
+        try {
+            // Disable submit button
+            const submitBtn = document.getElementById('transfer-submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            this.clearError();
+
+            // Create the SmartWeave interaction
+            const result = await this.dispatchSmartWeaveInteraction(
+                this.state.contractTxId,
+                {
+                    function: 'transfer',
+                    target: target,
+                    qty: qty
+                }
+            );
+
+            // Show transaction ID below the form
+            document.getElementById('form-tx-id').textContent = result.id;
+            document.getElementById('transaction-id-display').style.display = 'flex';
+
+            // Setup copy button for transaction ID
+            const copyTxIdBtn = document.getElementById('copy-form-tx-id-btn');
+            copyTxIdBtn.dataset.originalTitle = 'Copy transaction ID';
+            copyTxIdBtn.onclick = () => this.copyToClipboard(result.id, copyTxIdBtn);
+
+            console.log(`Transaction dispatched as ${result.type} transaction`);
+
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+                </svg>
+                Transfer Tokens
+            `;
+
+            // Reset form for next transfer
+            document.getElementById('transfer-form').reset();
+        } catch (error) {
+            console.error('Error submitting transfer:', error);
+            this.showError(`Failed to submit transfer: ${error.message}`);
+
+            // Re-enable button
+            const submitBtn = document.getElementById('transfer-submit-btn');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+                </svg>
+                Transfer Tokens
+            `;
+        }
+    }
+
+    async dispatchSmartWeaveInteraction(contractId, input) {
+        if (!window.arweaveWallet) {
+            throw new Error('Wander wallet not detected.');
+        }
+
+        if (!this.arweave) {
+            throw new Error('Arweave not initialized.');
+        }
+
+        // Request SIGN_TRANSACTION permission
+        await window.arweaveWallet.connect(['ACCESS_ADDRESS', 'SIGN_TRANSACTION']);
+
+        // Create an Arweave transaction with empty data for SmartWeave interactions
+        const transaction = await this.arweave.createTransaction({
+            data: '1984' // Dummy data to avoid empty transaction
+        });
+
+        // Add SmartWeave interaction tags
+        transaction.addTag('App-Name', 'SmartWeaveAction');
+        transaction.addTag('App-Version', '0.3.0');
+        transaction.addTag('Contract', contractId);
+        transaction.addTag('Input', JSON.stringify(input));
+
+        // Sign the transaction using arweave-js (will delegate to Wander)
+        await this.arweave.transactions.sign(transaction);
+
+        // Post the transaction to the network
+        const response = await this.arweave.transactions.post(transaction);
+
+        if (response.status !== 200) {
+            throw new Error(`Failed to post transaction: ${response.status} ${response.statusText}`);
+        }
+
+        // Return transaction ID
+        return {
+            id: transaction.id,
+            type: 'BASE'
+        };
+    }
+
+    resetTransferForm() {
+        // Reset form
+        document.getElementById('transfer-form').reset();
+
+        // Hide transaction ID display
+        document.getElementById('transaction-id-display').style.display = 'none';
+
+        // Show form, hide preview and result
+        document.getElementById('transfer-form').style.display = 'flex';
+        document.getElementById('transfer-preview').style.display = 'none';
+        document.getElementById('transfer-result').style.display = 'none';
+
+        this.clearError();
     }
 }
 

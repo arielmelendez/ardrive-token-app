@@ -89,6 +89,7 @@
             <button class="tab-btn active" data-tab="balances">Balances</button>
             <button class="tab-btn" data-tab="vaults">Vaults</button>
             <button class="tab-btn" data-tab="source">Source Code</button>
+            <button class="tab-btn" data-tab="interact">Interact</button>
         </nav>
 
         <main>
@@ -176,6 +177,108 @@
                     <pre id="source-code" class="code-viewer"><code id="source-code-content">// Loading source code...</code></pre>
                 </div>
             </section>
+
+            <!-- Interact Tab -->
+            <section id="interact-tab" class="tab-content">
+                <div class="interact-header">
+                    <h2>Transfer Tokens</h2>
+                    <p class="interact-description">Send tokens from your connected wallet to another address.</p>
+                </div>
+
+                <div class="interact-form-container">
+                    <form id="transfer-form" class="interact-form">
+                        <div class="form-group">
+                            <label for="transfer-target">Recipient Address</label>
+                            <input
+                                type="text"
+                                id="transfer-target"
+                                placeholder="Enter Arweave address"
+                                required
+                            >
+                            <span class="form-hint">The Arweave address to receive tokens</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="transfer-qty">Amount</label>
+                            <input
+                                type="number"
+                                id="transfer-qty"
+                                placeholder="0"
+                                min="1"
+                                step="1"
+                                required
+                            >
+                            <span class="form-hint">Must be a positive integer</span>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" id="transfer-preview-btn" class="btn btn-secondary">
+                                Preview Transaction
+                            </button>
+                            <button type="submit" id="transfer-submit-btn" class="btn btn-primary">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                                    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+                                </svg>
+                                Transfer Tokens
+                            </button>
+                        </div>
+                        <div id="transaction-id-display" class="transaction-id-display" style="display: none;">
+                            <span class="tx-label">Transaction ID:</span>
+                            <span class="tx-value" id="form-tx-id">-</span>
+                            <button class="copy-btn" id="copy-form-tx-id-btn" title="Copy transaction ID">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="transfer-preview" class="transaction-preview" style="display: none;">
+                        <h3>Transaction Preview</h3>
+                        <div class="preview-item">
+                            <span class="preview-label">Function:</span>
+                            <span class="preview-value">transfer</span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Target:</span>
+                            <span class="preview-value" id="preview-target">-</span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Quantity:</span>
+                            <span class="preview-value" id="preview-qty">-</span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Contract:</span>
+                            <span class="preview-value" id="preview-contract">-</span>
+                        </div>
+                    </div>
+
+                    <div id="transfer-result" class="transaction-result" style="display: none;">
+                        <h3>Transaction Submitted</h3>
+                        <div class="result-success">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <p>Your transfer has been submitted to the network.</p>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Transaction ID:</span>
+                            <span class="result-value" id="result-tx-id">-</span>
+                            <button class="copy-btn" id="copy-tx-id-btn" title="Copy transaction ID">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <button id="new-transfer-btn" class="btn btn-secondary">Make Another Transfer</button>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <footer>
@@ -197,6 +300,7 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/arweave@1.15.1/bundles/web.bundle.min.js"></script>
     <script src="app.js" type="module"></script>
 </body>
 </html>
