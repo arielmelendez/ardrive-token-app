@@ -844,6 +844,94 @@ footer {
     transform: scale(0.98);
 }
 
+.settings-header {
+    margin-bottom: 30px;
+}
+
+.settings-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.settings-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.settings-container {
+    display: grid;
+    gap: 16px;
+}
+
+.setting-card {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.2s;
+}
+
+.setting-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow);
+}
+
+.setting-name {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.setting-value {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.setting-value-number {
+    color: var(--primary-color);
+    font-variant-numeric: tabular-nums;
+}
+
+.setting-value-string {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size: 0.9rem;
+}
+
+.setting-value-array {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.setting-value-array-item {
+    background: var(--surface);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+
+.setting-value-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.setting-value-link:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
 .interact-header {
     margin-bottom: 30px;
 }

@@ -454,9 +454,118 @@ class TokenStateViewer {
             this.renderBalances();
         } else if (tabName === 'vaults') {
             this.renderVaults();
+        } else if (tabName === 'settings') {
+            this.renderSettings();
         } else if (tabName === 'source') {
             this.loadAndRenderSourceCode();
         }
+    }
+
+    getSettingDisplayName(key) {
+        const mapping = {
+            'voteLength': 'Vote Length (Blocks)',
+            'lockMinLength': 'Min Lock Duration (Blocks)',
+            'lockMaxLength': 'Max Lock Duration (Blocks)',
+            'communityAppUrl': 'Community App URL',
+            'communityDiscussionLinks': 'Community Discussion Links',
+            'communityDescription': 'Community Description',
+            'communityLogo': 'Community Logo',
+            'fee': 'ArDrive Community Tip Percentage',
+            'quorum': 'Quorum',
+            'support': 'Support'
+        };
+
+        return mapping[key] || key;
+    }
+
+    renderSettings() {
+        const container = document.getElementById('settings-container');
+        container.innerHTML = '';
+
+        if (!this.state || !this.state.state || !this.state.state.settings) {
+            container.innerHTML = '<p style="color: var(--text-secondary);">No settings available. Please load contract data first.</p>';
+            return;
+        }
+
+        const settings = this.state.state.settings;
+
+        // Settings is an array of [key, value] pairs
+        settings.forEach(([key, value]) => {
+            const card = document.createElement('div');
+            card.className = 'setting-card';
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'setting-name';
+            nameDiv.textContent = this.getSettingDisplayName(key);
+
+            const valueDiv = document.createElement('div');
+            valueDiv.className = 'setting-value';
+
+            // Handle different value types
+            if (Array.isArray(value)) {
+                // Array value
+                const arrayContainer = document.createElement('div');
+                arrayContainer.className = 'setting-value-array';
+
+                value.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'setting-value-array-item';
+
+                    // Check if item is a URL
+                    if (typeof item === 'string' && (item.startsWith('http://') || item.startsWith('https://'))) {
+                        const link = document.createElement('a');
+                        link.href = item;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.className = 'setting-value-link';
+                        link.textContent = item;
+                        itemDiv.appendChild(link);
+                    } else {
+                        itemDiv.textContent = String(item);
+                    }
+
+                    arrayContainer.appendChild(itemDiv);
+                });
+
+                valueDiv.appendChild(arrayContainer);
+            } else if (typeof value === 'number') {
+                // Number value
+                valueDiv.classList.add('setting-value-number');
+                valueDiv.textContent = this.formatNumber(value);
+            } else if (typeof value === 'string') {
+                // String value
+                valueDiv.classList.add('setting-value-string');
+
+                // Check if it's a URL
+                if (value.startsWith('http://') || value.startsWith('https://')) {
+                    const link = document.createElement('a');
+                    link.href = value;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.className = 'setting-value-link';
+                    link.textContent = value;
+                    valueDiv.appendChild(link);
+                } else if (value.length === 43 && /^[a-zA-Z0-9_-]+$/.test(value)) {
+                    // Looks like an Arweave transaction ID, make it a link
+                    const link = document.createElement('a');
+                    link.href = `https://arweave.net/${value}`;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.className = 'setting-value-link';
+                    link.textContent = value;
+                    valueDiv.appendChild(link);
+                } else {
+                    valueDiv.textContent = value;
+                }
+            } else {
+                // Other types (boolean, etc.)
+                valueDiv.textContent = String(value);
+            }
+
+            card.appendChild(nameDiv);
+            card.appendChild(valueDiv);
+            container.appendChild(card);
+        });
     }
 
     async loadAndRenderSourceCode() {
