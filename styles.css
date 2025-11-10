@@ -44,6 +44,22 @@ header {
     border: 1px solid var(--border);
 }
 
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.header-right {
+    display: flex;
+    align-items: flex-start;
+}
+
 header h1 {
     font-size: 2rem;
     margin-bottom: 10px;
@@ -92,6 +108,78 @@ header h1 {
 
 .copy-btn svg {
     display: block;
+}
+
+.wallet-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(238, 68, 68, 0.2);
+}
+
+.wallet-btn:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 4px 12px rgba(238, 68, 68, 0.3);
+    transform: translateY(-1px);
+}
+
+.wallet-btn:active {
+    transform: translateY(0);
+}
+
+.wallet-btn.connected {
+    background: var(--success);
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.wallet-btn.connected:hover {
+    background: #0ea578;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.wallet-btn svg {
+    flex-shrink: 0;
+}
+
+.wallet-info {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wallet-info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.wallet-info-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    min-width: 80px;
+}
+
+.wallet-info-value {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 .data-source-section {
@@ -667,6 +755,95 @@ footer {
     background: var(--text-secondary);
 }
 
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: var(--shadow-lg);
+    z-index: 1001;
+}
+
+.modal-content h3 {
+    margin: 0 0 16px 0;
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.modal-content p {
+    margin: 0 0 24px 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.modal-btn-secondary {
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+
+.modal-btn-secondary:hover {
+    background: var(--background);
+}
+
+.modal-btn-primary {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 2px 4px rgba(238, 68, 68, 0.2);
+}
+
+.modal-btn-primary:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 4px 12px rgba(238, 68, 68, 0.3);
+}
+
+.modal-btn:active {
+    transform: scale(0.98);
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 16px;
@@ -674,6 +851,20 @@ footer {
 
     header {
         padding: 24px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .header-right {
+        width: 100%;
+    }
+
+    .wallet-btn {
+        width: 100%;
+        justify-content: center;
     }
 
     header h1 {

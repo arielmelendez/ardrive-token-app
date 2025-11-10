@@ -9,15 +9,49 @@
 <body>
     <div class="container">
         <header>
-            <h1>ArDrive Token State Viewer</h1>
-            <div class="contract-info">
-                <span id="contractId"></span>
-                <button class="copy-btn" id="copy-contract-btn" title="Copy contract ID" style="display: none;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                </button>
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>ArDrive Token State Viewer</h1>
+                    <div class="contract-info">
+                        <span id="contractId"></span>
+                        <button class="copy-btn" id="copy-contract-btn" title="Copy contract ID" style="display: none;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button id="wallet-btn" class="wallet-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+                        </svg>
+                        <span id="wallet-btn-text">Connect Wallet</span>
+                    </button>
+                </div>
+            </div>
+            <div id="wallet-info" class="wallet-info" style="display: none;">
+                <div class="wallet-info-row">
+                    <span class="wallet-info-label">Address:</span>
+                    <span class="wallet-info-value" id="wallet-address">-</span>
+                    <button class="copy-btn" id="copy-wallet-address-btn" title="Copy address">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="wallet-info-row">
+                    <span class="wallet-info-label">Balance:</span>
+                    <span class="wallet-info-value" id="wallet-balance">-</span>
+                </div>
+                <div class="wallet-info-row">
+                    <span class="wallet-info-label">Vaulted:</span>
+                    <span class="wallet-info-value" id="wallet-vaulted">-</span>
+                </div>
             </div>
         </header>
 
@@ -148,6 +182,19 @@
             <div id="loading" class="loading">Loading...</div>
             <div id="error" class="error hidden"></div>
         </footer>
+    </div>
+
+    <!-- Disconnect Confirmation Modal -->
+    <div id="disconnect-modal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h3>Disconnect Wallet</h3>
+            <p>Are you sure you want to disconnect your wallet?</p>
+            <div class="modal-buttons">
+                <button id="cancel-disconnect-btn" class="modal-btn modal-btn-secondary">Cancel</button>
+                <button id="confirm-disconnect-btn" class="modal-btn modal-btn-primary">Disconnect</button>
+            </div>
+        </div>
     </div>
 
     <script src="app.js" type="module"></script>

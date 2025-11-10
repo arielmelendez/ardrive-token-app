@@ -11,6 +11,8 @@ class TokenStateViewer {
         this.filteredVaults = [];
         this.sourceCode = null;
         this.sourceTxId = null;
+        this.walletAddress = null;
+        this.walletConnected = false;
 
         // Sort state tracking
         this.balanceSortState = { column: null, direction: null };
@@ -31,6 +33,7 @@ class TokenStateViewer {
             }
 
             this.setupEventListeners();
+            this.setupWallet();
 
             // Auto-load data with default source (Cache API)
             await this.handleLoadData();
@@ -39,6 +42,154 @@ class TokenStateViewer {
             this.showError(error.message);
             this.hideLoading();
         }
+    }
+
+    setupWallet() {
+        // Check if Wander wallet is available
+        const checkWallet = () => {
+            if (window.arweaveWallet) {
+                console.log(`Using ${window.arweaveWallet.walletName || 'Wander'} wallet`);
+                console.log(`Version: ${window.arweaveWallet.walletVersion || 'unknown'}`);
+            }
+        };
+
+        // Check immediately
+        checkWallet();
+
+        // Also listen for the wallet loaded event
+        window.addEventListener('arweaveWalletLoaded', () => {
+            checkWallet();
+        });
+
+        // Setup wallet button click handler
+        document.getElementById('wallet-btn').addEventListener('click', () => {
+            if (this.walletConnected) {
+                this.showDisconnectModal();
+            } else {
+                this.connectWallet();
+            }
+        });
+
+        // Setup modal event handlers
+        document.getElementById('cancel-disconnect-btn').addEventListener('click', () => {
+            this.hideDisconnectModal();
+        });
+
+        document.getElementById('confirm-disconnect-btn').addEventListener('click', () => {
+            this.hideDisconnectModal();
+            this.disconnectWallet();
+        });
+
+        // Close modal when clicking overlay
+        document.querySelector('#disconnect-modal .modal-overlay').addEventListener('click', () => {
+            this.hideDisconnectModal();
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('disconnect-modal');
+                if (modal.style.display !== 'none') {
+                    this.hideDisconnectModal();
+                }
+            }
+        });
+    }
+
+    showDisconnectModal() {
+        document.getElementById('disconnect-modal').style.display = 'flex';
+    }
+
+    hideDisconnectModal() {
+        document.getElementById('disconnect-modal').style.display = 'none';
+    }
+
+    async connectWallet() {
+        try {
+            if (!window.arweaveWallet) {
+                throw new Error('Wander wallet not detected. Please install the Wander extension.');
+            }
+
+            // Request permissions
+            await window.arweaveWallet.connect(
+                ['ACCESS_ADDRESS'],
+                {
+                    name: 'ArDrive Token State Viewer',
+                }
+            );
+
+            // Get the active address
+            this.walletAddress = await window.arweaveWallet.getActiveAddress();
+            this.walletConnected = true;
+
+            this.updateWalletUI();
+            this.updateWalletBalances();
+        } catch (error) {
+            console.error('Error connecting wallet:', error);
+            this.showError(`Failed to connect wallet: ${error.message}`);
+        }
+    }
+
+    async disconnectWallet() {
+        try {
+            // Actually disconnect from Wander
+            if (window.arweaveWallet) {
+                await window.arweaveWallet.disconnect();
+            }
+
+            this.walletAddress = null;
+            this.walletConnected = false;
+            this.updateWalletUI();
+        } catch (error) {
+            console.error('Error disconnecting wallet:', error);
+            // Still update UI even if disconnect fails
+            this.walletAddress = null;
+            this.walletConnected = false;
+            this.updateWalletUI();
+        }
+    }
+
+    updateWalletUI() {
+        const walletBtn = document.getElementById('wallet-btn');
+        const walletBtnText = document.getElementById('wallet-btn-text');
+        const walletInfo = document.getElementById('wallet-info');
+
+        if (this.walletConnected && this.walletAddress) {
+            walletBtn.classList.add('connected');
+            walletBtnText.textContent = this.truncateAddress(this.walletAddress, 6, 4);
+            walletInfo.style.display = 'flex';
+
+            // Update address display
+            document.getElementById('wallet-address').textContent = this.walletAddress;
+
+            // Setup copy button for wallet address
+            const copyWalletAddressBtn = document.getElementById('copy-wallet-address-btn');
+            copyWalletAddressBtn.dataset.originalTitle = 'Copy address';
+            copyWalletAddressBtn.onclick = () => this.copyToClipboard(this.walletAddress, copyWalletAddressBtn);
+        } else {
+            walletBtn.classList.remove('connected');
+            walletBtnText.textContent = 'Connect Wallet';
+            walletInfo.style.display = 'none';
+        }
+    }
+
+    updateWalletBalances() {
+        if (!this.walletConnected || !this.walletAddress || !this.state) {
+            document.getElementById('wallet-balance').textContent = '-';
+            document.getElementById('wallet-vaulted').textContent = '-';
+            return;
+        }
+
+        // Get balance from state
+        const balances = this.state.state.balances;
+        const balance = balances[this.walletAddress] || 0;
+        document.getElementById('wallet-balance').textContent = this.formatNumber(balance);
+
+        // Get vaulted amount from state
+        const vaults = this.state.state.vault || {};
+        const userVaults = vaults[this.walletAddress] || [];
+        const totalVaulted = userVaults.reduce((sum, entry) => sum + entry.balance, 0);
+        document.getElementById('wallet-vaulted').textContent = this.formatNumber(totalVaulted);
     }
 
     async loadData() {
@@ -78,6 +229,11 @@ class TokenStateViewer {
             };
         });
         this.filteredVaults = [...this.vaultsData];
+
+        // Update wallet balances if wallet is connected
+        if (this.walletConnected) {
+            this.updateWalletBalances();
+        }
     }
 
     setupEventListeners() {
