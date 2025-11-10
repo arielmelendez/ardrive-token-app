@@ -14,6 +14,7 @@ class TokenStateViewer {
         this.walletAddress = null;
         this.walletConnected = false;
         this.arweave = null;
+        this.currentBlockHeight = null;
 
         // Sort state tracking
         this.balanceSortState = { column: null, direction: null };
@@ -43,12 +44,30 @@ class TokenStateViewer {
             this.setupEventListeners();
             this.setupWallet();
 
+            // Fetch and display current block height
+            await this.updateBlockHeight();
+
             // Auto-load data with default source (Cache API)
             await this.handleLoadData();
         } catch (error) {
             console.error('Error initializing app:', error);
             this.showError(error.message);
             this.hideLoading();
+        }
+    }
+
+    async updateBlockHeight() {
+        try {
+            if (!this.arweave) return;
+
+            const result = await this.arweave.blocks.getCurrent();
+            this.currentBlockHeight = result.height;
+
+            document.getElementById('current-block-height').textContent =
+                this.currentBlockHeight.toLocaleString();
+        } catch (error) {
+            console.error('Error fetching block height:', error);
+            document.getElementById('current-block-height').textContent = 'Error';
         }
     }
 
@@ -122,7 +141,7 @@ class TokenStateViewer {
             await window.arweaveWallet.connect(
                 ['ACCESS_ADDRESS'],
                 {
-                    name: 'ArDrive Token State Viewer',
+                    name: 'ArDrive Token Toolkit',
                 }
             );
 
@@ -174,10 +193,22 @@ class TokenStateViewer {
             const copyWalletAddressBtn = document.getElementById('copy-wallet-address-btn');
             copyWalletAddressBtn.dataset.originalTitle = 'Copy address';
             copyWalletAddressBtn.onclick = () => this.copyToClipboard(this.walletAddress, copyWalletAddressBtn);
+
+            // If we're on the unlock tab, re-render it
+            const activeTab = document.querySelector('.tab-content.active');
+            if (activeTab && activeTab.id === 'unlock-tab') {
+                this.renderUnlockVaults();
+            }
         } else {
             walletBtn.classList.remove('connected');
             walletBtnText.textContent = 'Connect Wallet';
             walletInfo.style.display = 'none';
+
+            // If we're on the unlock tab, re-render it to show the "connect wallet" message
+            const activeTab = document.querySelector('.tab-content.active');
+            if (activeTab && activeTab.id === 'unlock-tab') {
+                this.renderUnlockVaults();
+            }
         }
     }
 
@@ -241,6 +272,12 @@ class TokenStateViewer {
         // Update wallet balances if wallet is connected
         if (this.walletConnected) {
             this.updateWalletBalances();
+        }
+
+        // If we're on the unlock tab, re-render it now that state is loaded
+        const activeTab = document.querySelector('.tab-content.active');
+        if (activeTab && activeTab.id === 'unlock-tab') {
+            this.renderUnlockVaults();
         }
     }
 
@@ -458,6 +495,8 @@ class TokenStateViewer {
             this.renderSettings();
         } else if (tabName === 'source') {
             this.loadAndRenderSourceCode();
+        } else if (tabName === 'unlock') {
+            this.renderUnlockVaults();
         }
     }
 
@@ -1019,6 +1058,176 @@ class TokenStateViewer {
                 </svg>
                 Transfer Tokens
             `;
+        }
+    }
+
+    renderUnlockVaults() {
+        const container = document.getElementById('unlock-vaults-container');
+        container.innerHTML = '';
+
+        // Check if wallet is connected
+        if (!this.walletConnected || !this.walletAddress) {
+            container.innerHTML = '<p style="color: var(--text-secondary);">Please connect your wallet to view your vaults.</p>';
+            return;
+        }
+
+        // Check if state is loaded
+        if (!this.state || !this.state.state) {
+            container.innerHTML = '<p style="color: var(--text-secondary);">Please load contract data first.</p>';
+            return;
+        }
+
+        // Check if current block height is available
+        if (!this.currentBlockHeight) {
+            container.innerHTML = '<p style="color: var(--text-secondary);">Loading block height...</p>';
+            return;
+        }
+
+        // Get user's vaults
+        const vaults = this.state.state.vault || {};
+        const userVaults = vaults[this.walletAddress] || [];
+
+        if (userVaults.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-secondary);">You have no vaulted tokens.</p>';
+            return;
+        }
+
+        // Render each vault
+        userVaults.forEach((vault, index) => {
+            const card = document.createElement('div');
+            card.className = 'unlock-vault-card';
+
+            const isUnlockable = this.currentBlockHeight >= vault.end;
+            if (isUnlockable) {
+                card.classList.add('unlockable');
+            }
+
+            // Header with balance and status
+            const header = document.createElement('div');
+            header.className = 'unlock-vault-header';
+
+            // Vault info
+            const vaultInfo = document.createElement('div');
+            vaultInfo.className = 'unlock-vault-info';
+
+            const balance = document.createElement('div');
+            balance.className = 'unlock-vault-balance';
+            balance.textContent = this.formatNumber(vault.balance) + ' Tokens';
+
+            const details = document.createElement('div');
+            details.className = 'unlock-vault-details';
+
+            // Start block
+            const startItem = document.createElement('div');
+            startItem.className = 'unlock-detail-item';
+            startItem.innerHTML = `
+                <span class="unlock-detail-label">Start Block</span>
+                <span class="unlock-detail-value">${this.formatNumber(vault.start)}</span>
+            `;
+
+            // End block
+            const endItem = document.createElement('div');
+            endItem.className = 'unlock-detail-item';
+            endItem.innerHTML = `
+                <span class="unlock-detail-label">End Block</span>
+                <span class="unlock-detail-value">${this.formatNumber(vault.end)}</span>
+            `;
+
+            details.appendChild(startItem);
+            details.appendChild(endItem);
+
+            vaultInfo.appendChild(balance);
+            vaultInfo.appendChild(details);
+
+            // Status and unlock button
+            const status = document.createElement('div');
+            status.className = 'unlock-status';
+
+            const badge = document.createElement('div');
+            badge.className = `unlock-status-badge ${isUnlockable ? 'ready' : 'locked'}`;
+            badge.textContent = isUnlockable ? 'Ready' : 'Locked';
+
+            status.appendChild(badge);
+
+            if (isUnlockable) {
+                const unlockBtn = document.createElement('button');
+                unlockBtn.className = 'unlock-btn';
+                unlockBtn.textContent = 'Unlock';
+                unlockBtn.onclick = () => this.unlockVault();
+                status.appendChild(unlockBtn);
+            } else {
+                const remaining = vault.end - this.currentBlockHeight;
+                const remainingDiv = document.createElement('div');
+                remainingDiv.className = 'unlock-remaining';
+                remainingDiv.textContent = `${this.formatNumber(remaining)} blocks remaining`;
+
+                // Calculate time estimate (2 minutes per block)
+                const minutesRemaining = remaining * 2;
+                const hoursRemaining = Math.floor(minutesRemaining / 60);
+                const daysRemaining = Math.floor(hoursRemaining / 24);
+
+                let timeEstimate = '';
+                if (daysRemaining > 0) {
+                    timeEstimate = `~${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}`;
+                } else if (hoursRemaining > 0) {
+                    timeEstimate = `~${hoursRemaining} hour${hoursRemaining !== 1 ? 's' : ''}`;
+                } else {
+                    timeEstimate = `~${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}`;
+                }
+
+                const estimateDiv = document.createElement('div');
+                estimateDiv.className = 'unlock-estimate';
+                estimateDiv.textContent = timeEstimate;
+
+                status.appendChild(remainingDiv);
+                status.appendChild(estimateDiv);
+            }
+
+            header.appendChild(vaultInfo);
+            header.appendChild(status);
+
+            card.appendChild(header);
+            container.appendChild(card);
+        });
+    }
+
+    async unlockVault() {
+        // Validate wallet connection
+        if (!this.walletConnected || !this.walletAddress) {
+            this.showError('Please connect your wallet first.');
+            return;
+        }
+
+        // Validate contract state loaded
+        if (!this.state || !this.state.contractTxId) {
+            this.showError('Please load contract data first.');
+            return;
+        }
+
+        try {
+            this.showLoading();
+            this.clearError();
+
+            // Create the unlock interaction (no parameters needed)
+            const result = await this.dispatchSmartWeaveInteraction(
+                this.state.contractTxId,
+                {
+                    function: 'unlock'
+                }
+            );
+
+            console.log(`Unlock transaction posted: ${result.id}`);
+            this.hideLoading();
+
+            // Show success message
+            alert(`Unlock transaction submitted!\n\nTransaction ID: ${result.id}\n\nThe transaction will be processed by the network. You may need to wait a few minutes and reload the contract state to see the updated balances.`);
+
+            // Re-render the unlock vaults
+            this.renderUnlockVaults();
+        } catch (error) {
+            console.error('Error unlocking vault:', error);
+            this.showError(`Failed to unlock vault: ${error.message}`);
+            this.hideLoading();
         }
     }
 

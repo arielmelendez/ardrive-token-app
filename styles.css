@@ -182,6 +182,30 @@ header h1 {
     font-weight: 600;
 }
 
+.block-height-info {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.block-height-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.block-height-value {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
 .data-source-section {
     background: var(--surface);
     padding: 28px;
@@ -946,6 +970,159 @@ footer {
 .interact-description {
     color: var(--text-secondary);
     font-size: 0.95rem;
+}
+
+.unlock-header {
+    margin-bottom: 30px;
+}
+
+.unlock-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.unlock-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.unlock-vaults-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.unlock-vault-card {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    transition: all 0.2s;
+}
+
+.unlock-vault-card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+
+.unlock-vault-card.unlockable {
+    border-color: var(--success);
+}
+
+.unlock-vault-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.unlock-vault-info {
+    flex: 1;
+}
+
+.unlock-vault-balance {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 12px;
+}
+
+.unlock-vault-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.unlock-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.unlock-detail-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.unlock-detail-value {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.unlock-status {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.unlock-status-badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.unlock-status-badge.ready {
+    background: var(--success);
+    color: white;
+}
+
+.unlock-status-badge.locked {
+    background: var(--surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+}
+
+.unlock-remaining {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+.unlock-estimate {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.unlock-btn {
+    padding: 12px 24px;
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.unlock-btn:hover:not(:disabled) {
+    background: #0ea578;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    transform: translateY(-1px);
+}
+
+.unlock-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.unlock-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--border);
 }
 
 .interact-form-container {

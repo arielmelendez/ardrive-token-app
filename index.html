@@ -53,6 +53,10 @@
                     <span class="wallet-info-value" id="wallet-vaulted">-</span>
                 </div>
             </div>
+            <div class="block-height-info">
+                <span class="block-height-label">Current Block:</span>
+                <span class="block-height-value" id="current-block-height">-</span>
+            </div>
         </header>
 
         <section class="data-source-section">
@@ -90,7 +94,8 @@
             <button class="tab-btn" data-tab="vaults">Vaults</button>
             <button class="tab-btn" data-tab="settings">Settings</button>
             <button class="tab-btn" data-tab="source">Source Code</button>
-            <button class="tab-btn" data-tab="interact">Interact</button>
+            <button class="tab-btn" data-tab="transfer">Transfer</button>
+            <button class="tab-btn" data-tab="unlock">Unlock</button>
         </nav>
 
         <main>
@@ -190,8 +195,8 @@
                 </div>
             </section>
 
-            <!-- Interact Tab -->
-            <section id="interact-tab" class="tab-content">
+            <!-- Transfer Tab -->
+            <section id="transfer-tab" class="tab-content">
                 <div class="interact-header">
                     <h2>Transfer Tokens</h2>
                     <p class="interact-description">Send tokens from your connected wallet to another address.</p>
@@ -289,6 +294,17 @@
                         </div>
                         <button id="new-transfer-btn" class="btn btn-secondary">Make Another Transfer</button>
                     </div>
+                </div>
+            </section>
+
+            <!-- Unlock Tab -->
+            <section id="unlock-tab" class="tab-content">
+                <div class="unlock-header">
+                    <h2>Unlock Vaults</h2>
+                    <p class="unlock-description">Unlock your vaulted tokens that have reached their end block height.</p>
+                </div>
+                <div id="unlock-vaults-container" class="unlock-vaults-container">
+                    <!-- User's vaults will be rendered here -->
                 </div>
             </section>
         </main>
