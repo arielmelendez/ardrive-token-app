@@ -329,6 +329,16 @@ class TokenStateViewer {
         document.getElementById('new-transfer-btn').addEventListener('click', () => {
             this.resetTransferForm();
         });
+
+        // Lock tab controls
+        document.getElementById('lock-length').addEventListener('input', () => {
+            this.updateLockEstimate();
+        });
+
+        document.getElementById('lock-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.submitLock();
+        });
     }
 
     handleDataSourceChange(sourceType) {
@@ -497,6 +507,8 @@ class TokenStateViewer {
             this.loadAndRenderSourceCode();
         } else if (tabName === 'unlock') {
             this.renderUnlockVaults();
+        } else if (tabName === 'lock') {
+            this.renderLockForm();
         }
     }
 
@@ -1284,6 +1296,167 @@ class TokenStateViewer {
         document.getElementById('transfer-result').style.display = 'none';
 
         this.clearError();
+    }
+
+    renderLockForm() {
+        // Update hint text with min/max lock length from settings
+        if (!this.state || !this.state.state || !this.state.state.settings) {
+            document.getElementById('lock-length-hint').textContent = 'Load contract data to see valid range';
+            return;
+        }
+
+        const settings = new Map(this.state.state.settings);
+        const lockMinLength = settings.get('lockMinLength');
+        const lockMaxLength = settings.get('lockMaxLength');
+
+        if (lockMinLength && lockMaxLength) {
+            document.getElementById('lock-length-hint').textContent =
+                `Valid range: ${this.formatNumber(lockMinLength)} - ${this.formatNumber(lockMaxLength)} blocks`;
+
+            // Update input min/max attributes
+            const lockLengthInput = document.getElementById('lock-length');
+            lockLengthInput.min = lockMinLength;
+            lockLengthInput.max = lockMaxLength;
+        }
+
+        // Update the estimate display
+        this.updateLockEstimate();
+    }
+
+    updateLockEstimate() {
+        const lockLength = parseInt(document.getElementById('lock-length').value);
+
+        // Reset to defaults if no valid input
+        if (!lockLength || lockLength <= 0 || !this.currentBlockHeight) {
+            document.getElementById('estimate-unlock-block').textContent = '-';
+            document.getElementById('estimate-time').textContent = '-';
+            return;
+        }
+
+        // Calculate unlock block
+        const unlockBlock = this.currentBlockHeight + lockLength;
+
+        // Calculate time estimate (2 minutes per block)
+        const minutesUntilUnlock = lockLength * 2;
+        const hoursUntilUnlock = Math.floor(minutesUntilUnlock / 60);
+        const daysUntilUnlock = Math.floor(hoursUntilUnlock / 24);
+
+        let timeEstimate = '';
+        if (daysUntilUnlock > 0) {
+            timeEstimate = `~${daysUntilUnlock} day${daysUntilUnlock !== 1 ? 's' : ''}`;
+        } else if (hoursUntilUnlock > 0) {
+            timeEstimate = `~${hoursUntilUnlock} hour${hoursUntilUnlock !== 1 ? 's' : ''}`;
+        } else {
+            timeEstimate = `~${minutesUntilUnlock} minute${minutesUntilUnlock !== 1 ? 's' : ''}`;
+        }
+
+        // Update estimate display
+        document.getElementById('estimate-unlock-block').textContent = this.formatNumber(unlockBlock);
+        document.getElementById('estimate-time').textContent = timeEstimate;
+    }
+
+    async submitLock() {
+        const qty = parseInt(document.getElementById('lock-qty').value);
+        const lockLength = parseInt(document.getElementById('lock-length').value);
+
+        // Validate wallet connection
+        if (!this.walletConnected || !this.walletAddress) {
+            this.showError('Please connect your wallet first.');
+            return;
+        }
+
+        // Validate contract state loaded
+        if (!this.state || !this.state.contractTxId || !this.state.state.settings) {
+            this.showError('Please load contract data first.');
+            return;
+        }
+
+        // Validate inputs
+        if (!qty || qty <= 0 || !Number.isInteger(qty)) {
+            this.showError('Amount must be a positive integer.');
+            return;
+        }
+
+        if (!lockLength || lockLength <= 0 || !Number.isInteger(lockLength)) {
+            this.showError('Lock duration must be a positive integer.');
+            return;
+        }
+
+        // Validate against min/max
+        const settings = new Map(this.state.state.settings);
+        const lockMinLength = settings.get('lockMinLength');
+        const lockMaxLength = settings.get('lockMaxLength');
+
+        if (lockLength < lockMinLength || lockLength > lockMaxLength) {
+            this.showError(`Lock duration must be between ${this.formatNumber(lockMinLength)} and ${this.formatNumber(lockMaxLength)} blocks.`);
+            return;
+        }
+
+        // Check balance
+        const balance = this.state.state.balances[this.walletAddress] || 0;
+        if (balance < qty) {
+            this.showError(`Insufficient balance. You have ${this.formatNumber(balance)} tokens.`);
+            return;
+        }
+
+        try {
+            // Disable submit button
+            const submitBtn = document.getElementById('lock-submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            this.clearError();
+
+            // Create the SmartWeave interaction
+            const result = await this.dispatchSmartWeaveInteraction(
+                this.state.contractTxId,
+                {
+                    function: 'lock',
+                    qty: qty,
+                    lockLength: lockLength
+                }
+            );
+
+            // Show transaction ID below the form
+            document.getElementById('lock-tx-id').textContent = result.id;
+            document.getElementById('lock-transaction-id-display').style.display = 'flex';
+
+            // Setup copy button for transaction ID
+            const copyTxIdBtn = document.getElementById('copy-lock-tx-id-btn');
+            copyTxIdBtn.dataset.originalTitle = 'Copy transaction ID';
+            copyTxIdBtn.onclick = () => this.copyToClipboard(result.id, copyTxIdBtn);
+
+            console.log(`Lock transaction posted: ${result.id}`);
+
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Lock Tokens
+            `;
+
+            // Reset form for next lock
+            document.getElementById('lock-form').reset();
+            this.updateLockEstimate();
+        } catch (error) {
+            console.error('Error submitting lock:', error);
+            this.showError(`Failed to submit lock: ${error.message}`);
+
+            // Re-enable button
+            const submitBtn = document.getElementById('lock-submit-btn');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Lock Tokens
+            `;
+            this.updateLockEstimate();
+        }
     }
 }
 

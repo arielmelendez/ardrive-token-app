@@ -1360,6 +1360,65 @@ footer {
     font-weight: 600;
 }
 
+.lock-header {
+    margin-bottom: 30px;
+}
+
+.lock-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.lock-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.lock-form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.lock-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.lock-estimate-info {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.lock-estimate-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lock-estimate-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.lock-estimate-value {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 16px;
