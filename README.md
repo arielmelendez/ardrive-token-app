@@ -1,6 +1,8 @@
-# ArDrive Token State Viewer
+# ArDrive Token Toolkit
 
-A simple HTML5/CSS/JavaScript application for visualizing ArDrive token state data, including balances and vaults.
+A simple HTML5/CSS/JavaScript application for visualizing ArDrive token state data, including balances, vaults, and contract settings.
+
+Also provides user interfaces for transferring tokens via interactions signed by Wander Wallet.
 
 ## Features
 
