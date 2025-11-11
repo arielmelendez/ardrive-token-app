@@ -257,16 +257,18 @@ class TokenStateViewer {
         }));
         this.filteredBalances = [...this.balancesData];
 
-        // Process vaults
+        // Process vaults (filter out vaults with 0 locked tokens)
         const vaults = this.state.state.vault || {};
-        this.vaultsData = Object.entries(vaults).map(([address, entries]) => {
-            const total = entries.reduce((sum, entry) => sum + entry.balance, 0);
-            return {
-                address,
-                entries,
-                total
-            };
-        });
+        this.vaultsData = Object.entries(vaults)
+            .map(([address, entries]) => {
+                const total = entries.reduce((sum, entry) => sum + entry.balance, 0);
+                return {
+                    address,
+                    entries,
+                    total
+                };
+            })
+            .filter(vault => vault.total > 0);
         this.filteredVaults = [...this.vaultsData];
 
         // Update wallet balances if wallet is connected
